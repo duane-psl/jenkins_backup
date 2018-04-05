@@ -24,6 +24,7 @@
     <hudson.tasks.Shell>
       <command># Server URLs
 
+# We do the following two steps manually once in the container (when it is created), so that the build takes less time.
 #sudo apt-get update
 #sudo apt-get install -y curl
 

@@ -48,8 +48,7 @@ git clone https://github.com/apache/mesos
 cd mesos/
 git checkout 1.5.0
 
-cat &quot;
-diff --git a/src/google/protobuf/stubs/atomicops_internals_generic_gcc.h b/src/google/protobuf/stubs/atomicops_internals_generic_gcc.h
+echo &quot;
 index 0b0b06c..075c406 100644
 --- a/src/google/protobuf/stubs/atomicops_internals_generic_gcc.h
 +++ b/src/google/protobuf/stubs/atomicops_internals_generic_gcc.h
