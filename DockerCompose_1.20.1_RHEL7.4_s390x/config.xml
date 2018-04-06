@@ -9,22 +9,23 @@
     </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>dockercloud_ubuntu17.10</assignedNode>
+  <assignedNode>dc2_rh7.4_2048</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
     <hudson.triggers.TimerTrigger>
-      <spec>H 13 * * 3</spec>
+      <spec>H 16 * * 3</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>#Set the below parameters manually
+      <command>source /home/test/.bashrc
+#Set the below parameters manually
 package_name=&quot;docker-compose&quot;
-published_version=&quot;1.19.0&quot;
+published_version=&quot;1.20.1&quot;
 
 #Check distro and available version in repo : rhel7.x, Sles11.x/12.x, Ub16.x/17.x 
 . /etc/os-release
@@ -44,16 +45,20 @@ if [[ $available_version == *&quot;$published_version&quot;* ]]; then
 else	
    echo &quot;Published version is not available in repo. Going ahead.&quot;     
 fi
-
 # Install the following Dependencies
-sudo apt-get update
-sudo apt-get install -y python-pip
-pip install --upgrade pip
-
-# INstall package       
-sudo pip install docker-compose==1.19.0
+		
+		sudo yum install -y python-setuptools
         
-docker-compose version</command>
+		sudo easy_install pip
+
+       
+# Build and install        
+       
+        sudo pip install backports.ssl_match_hostname --upgrade
+        
+        sudo pip install docker-compose==1.20.1
+        
+        docker-compose version</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

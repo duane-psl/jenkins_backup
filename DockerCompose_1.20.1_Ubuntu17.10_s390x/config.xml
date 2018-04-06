@@ -9,7 +9,7 @@
     </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>dc2_ub16.04_2048</assignedNode>
+  <assignedNode>dockercloud_ubuntu17.10</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -24,7 +24,7 @@
     <hudson.tasks.Shell>
       <command>#Set the below parameters manually
 package_name=&quot;docker-compose&quot;
-published_version=&quot;1.19.0&quot;
+published_version=&quot;1.20.1&quot;
 
 #Check distro and available version in repo : rhel7.x, Sles11.x/12.x, Ub16.x/17.x 
 . /etc/os-release
@@ -50,8 +50,8 @@ sudo apt-get update
 sudo apt-get install -y python-pip
 pip install --upgrade pip
 
-# Build and install
-sudo pip install docker-compose==1.19.0
+# INstall package       
+sudo pip install docker-compose==1.20.1
         
 docker-compose version</command>
     </hudson.tasks.Shell>
