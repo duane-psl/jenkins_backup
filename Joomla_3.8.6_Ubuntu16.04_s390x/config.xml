@@ -9,27 +9,27 @@
     </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>dc2_sl12-sp3_2048</assignedNode>
+  <assignedNode>dc2_ub16.04_2048</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
     <hudson.triggers.TimerTrigger>
-      <spec>H 11 * * 3</spec>
+      <spec>H 13 * * 4</spec>
     </hudson.triggers.TimerTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>#Check if published version is already present in repo 
-sudo zypper update -y
+      <command># Install dependencies
+
+#Check if published version is already present in repo 
 package_name=&quot;joomla&quot;
-published_version=&quot;3.8.5&quot;
+published_version=&quot;3.8.6&quot;
 
 #Check distro and available version in repo : ubuntu
-available_version=$(sudo zypper info $package_name | grep Version | head -1 | cut -d &apos;:&apos; -f 2| cut -d &apos; &apos; -f 2)
-
+available_version=$(sudo apt-get update &amp;&amp; sudo apt-cache policy $package_name | grep Candidate | head -1 | cut -d &apos; &apos; -f 4)
 
 if [[ $available_version == *&quot;$published_version&quot;* ]]; then
 	echo &quot;Version $published_version is already available in repo&quot;
@@ -40,60 +40,56 @@ else
 fi
 
 
-sudo zypper update -y
-sudo zypper install -y apache2 apache2-devel tar wget mariadb gcc gcc-c++ libtool autoconf make pcre pcre-devel libxml2 libxml2-devel libexpat-devel wget libjpeg-devel libpng-devel unzip net-tools libmcrypt libmcrypt-devel
+### Install dependencies
+sudo apt-get update
+export DEBIAN_FRONTEND=noninteractive
+sudo -E apt-get install -y mysql-server
+sudo apt-get install -y wget apache2 php7.0 php7.0-mysql php7.0-mcrypt libapache2-mod-php7.0 libapache2-mod-perl2  php7.0-cli php7.0-common php7.0-curl php7.0-dev unzip curl
 
 
+### Make changes in the configuration file 
+sudo chmod 777 /etc/apache2/apache2.conf
+sudo cp /etc/apache2/apache2.conf /etc/apache2/apache2.conf.old
+sudo chmod 777 /etc/apache2/apache2.conf.old
 
-# Build and Install PHP
-wget http://www.php.net/distributions/php-5.6.8.tar.gz 
-tar xvzf php-5.6.8.tar.gz
-cd php-5.6.8
-./configure --prefix=/usr/local/php --with-apxs2=/usr/sbin/apxs2 --with-config-file-path=/usr/local/php --with-mysql --with-gd --with-zlib  --with-mcrypt 
-make  
-sudo make install
-export PATH=/usr/local/php/bin/:$PATH  
+sudo echo -e &quot;AddType application/x-httpd-php .php&quot; &gt;&gt; /etc/apache2/apache2.conf
+sudo echo -e &quot;ServerName localhost&quot; &gt;&gt; /etc/apache2/apache2.conf
+sudo echo -e &quot;&lt;Directory /&gt;&quot; &gt;&gt; /etc/apache2/apache2.conf
+sudo echo -e &quot; DirectoryIndex index.php &quot; &gt;&gt; /etc/apache2/apache2.conf
+sudo echo -e &quot;&lt;/Directory&gt;&quot; &gt;&gt; /etc/apache2/apache2.conf
 
-
-#Make Changes in the configuration files
-sudo chmod 777 /etc/apache2/httpd.conf
-sudo cp /etc/apache2/httpd.conf /etc/apache2/httpd.conf.old
-sudo chmod 777 /etc/apache2/httpd.conf.old
+diff -u /etc/apache2/apache2.conf.old /etc/apache2/apache2.conf || true
 
 
-#/etc/apache2/httpd.conf
-echo -e &quot;AddType application/x-httpd-php .php&quot; | sudo tee -a  /etc/apache2/httpd.conf
-echo -e &quot;&lt;Directory /&gt;&quot; | sudo tee -a  /etc/apache2/httpd.conf
-echo -e &quot; DirectoryIndex index.php &quot; | sudo tee -a  /etc/apache2/httpd.conf
-echo -e &quot;&lt;/Directory&gt;&quot; | sudo tee -a  /etc/apache2/httpd.conf
-echo -e &quot;LoadModule php5_module /usr/lib64/apache2/libphp5.so&quot; | sudo tee -a  /etc/apache2/httpd.conf
-
-diff -u /etc/apache2/httpd.conf.old /etc/apache2/httpd.conf || true
-cat /etc/apache2/httpd.conf
-
-#Source Code
-cd /srv/www/htdocs
+# Get source code
+cd /var/www/html/
 sudo rm -rf Joomla
 sudo mkdir Joomla
-cd Joomla
-sudo wget -O Joomla_3.8.5-Stable-Full_Package.zip  https://github.com/joomla/joomla-cms/releases/download/3.8.5/Joomla_3.8.5-Stable-Full_Package.zip
-sudo unzip Joomla_3.8.5-Stable-Full_Package.zip
-sudo chmod a+w /srv/www/htdocs/Joomla/
+cd Joomla/
+sudo wget -O Joomla_3.8.6-Stable-Full_Package.zip  https://github.com/joomla/joomla-cms/releases/download/3.8.6/Joomla_3.8.6-Stable-Full_Package.zip
+sudo unzip Joomla_3.8.6-Stable-Full_Package.zip
+sudo chmod a+w /var/www/html/Joomla/
 
 #Rename configuration.php-dist as configuration.php
-sudo mv installation/configuration.php-dist installation/configuration.php 
+sudo mv installation/configuration.php-dist installation/configuration.php
 
+# Start mysql server
+sudo /usr/sbin/mysqld --initialize --user=mysql --datadir=/var/lib/mysql/data
+sleep 5m
+sudo service mysql start
+sleep 20s
 
-#mysql
-sudo /usr/bin/mysql_install_db --user=mysql     
-sudo /usr/bin/mysqld_safe --user=mysql &amp; 
-sleep 50
+# Create database 
 
-sudo /usr/bin/mysql -e &quot;create database Joomla&quot;
+sudo /usr/bin/mysql  -e &quot;create database Joomla&quot;
 sudo /usr/bin/mysql  -e &quot;create user &apos;user&apos;@&apos;localhost&apos; identified by &apos;password&apos;&quot;
-sudo /usr/bin/mysql  -e  &quot;GRANT ALL PRIVILEGES ON *.* TO &apos;user&apos;@&apos;localhost&apos; identified by &apos;password&apos;&quot;       
-sudo /usr/sbin/httpd -D BACKGROUND
+sudo /usr/bin/mysql  -e &quot;GRANT ALL PRIVILEGES ON *.* TO &apos;user&apos;@&apos;localhost&apos; identified by &apos;password&apos;&quot;	     
 
+# Start apache
+sudo /usr/sbin/apachectl -k start
+      
+
+# Verification
 wget http://127.0.0.1:80/Joomla/installation/index.php</command>
     </hudson.tasks.Shell>
   </builders>
