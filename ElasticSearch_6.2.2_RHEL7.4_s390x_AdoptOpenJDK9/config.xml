@@ -64,7 +64,7 @@ java -version
 unset JAVA_TOOL_OPTIONS
 export LANG=&quot;en_US.UTF-8&quot;
 export JAVA_TOOL_OPTIONS=&quot;-Dfile.encoding=UTF8&quot;
-export _JAVA_OPTIONS=&quot;-Xmx10g&quot;
+#export _JAVA_OPTIONS=&quot;-Xmx10g&quot;
 
 
 # Download Elasticsearch source code

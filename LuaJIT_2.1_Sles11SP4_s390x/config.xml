@@ -29,7 +29,7 @@ cd LuaJIT
 git checkout v2.1
 make
 sudo make install
-sudo ln -s luajit-2.1.0-beta2 /usr/local/bin/luajit</command>
+sudo ln -s luajit-2.1.0-beta3 /usr/local/bin/luajit</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

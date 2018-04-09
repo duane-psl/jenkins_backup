@@ -35,7 +35,7 @@ sudo zypper install -y awk tar wget-openssl1 curl
 export WORK_DIR=`pwd`
 #Install AdoptJDK
 cd $WORK_DIR
-wget -O OpenJDK9_s390x_Linux_jdk-9.181.tar.gz  https://github.com/AdoptOpenJDK/openjdk9-releases/releases/download/jdk-9%2B181/OpenJDK9_s390x_Linux_jdk-9.181.tar.gz
+wget https://github.com/AdoptOpenJDK/openjdk9-releases/releases/download/jdk-9%2B181/OpenJDK9_s390x_Linux_jdk-9.181.tar.gz
 tar -xvf OpenJDK9_s390x_Linux_jdk-9.181.tar.gz
 export JAVA_HOME=$WORK_DIR/jdk-9+181/ 
 export PATH=$JAVA_HOME/bin:$PATH
