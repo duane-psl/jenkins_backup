@@ -56,7 +56,7 @@ export Ansible_home=`pwd`
 cat /etc/os-release
 sudo zypper update -y
 sudo zypper install -y git tar bzip2 unzip make autoconf net-tools wget libxslt-devel gcc openssl libopenssl-devel libffi-devel patch ncurses ncurses-devel xz python-setuptools awk automake libtool
- 
+
 # Python 2.7.14
 cd $Ansible_home
 sudo zypper install -y gcc gcc-c++ make ncurses patch wget tar bzip2 zlib-devel xz readline-devel sqlite-devel tk-devel ncurses-devel gdbm-devel openssl-devel libdb-4_5-devel gdb awk glibc-debuginfo netcfg libbz2-devel
