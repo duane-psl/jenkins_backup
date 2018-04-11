@@ -27,7 +27,7 @@
   <builders>
     <hudson.tasks.Shell>
       <command>source /home/test/.bashrc
-package_name=&quot;protobuf&quot;
+package_name=&quot;protobuf-compiler&quot;
 published_version=&quot;3.5.1&quot;
 
 available_version=$(sudo yum info $package_name | grep Version | head -1 | cut -d &apos;:&apos; -f 2| cut -d &apos; &apos; -f 2)

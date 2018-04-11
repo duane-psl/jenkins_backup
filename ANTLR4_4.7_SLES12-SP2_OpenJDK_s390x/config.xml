@@ -9,7 +9,7 @@
     </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>dc2_sl12-SP2_4096</assignedNode>
+  <assignedNode>dockercloud_sles12-sp2-8192</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -18,10 +18,6 @@
     <hudson.triggers.TimerTrigger>
       <spec>H 18 * * 2</spec>
     </hudson.triggers.TimerTrigger>
-    <hudson.triggers.SCMTrigger>
-      <spec>H 18 * * 2</spec>
-      <ignorePostCommitHooks>false</ignorePostCommitHooks>
-    </hudson.triggers.SCMTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
