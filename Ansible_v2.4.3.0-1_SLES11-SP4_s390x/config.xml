@@ -55,12 +55,52 @@ export Ansible_home=`pwd`
 #Install dependencies
 cat /etc/os-release
 sudo zypper update -y
-sudo zypper install -y git tar bzip2 unzip make autoconf net-tools wget libxslt-devel gcc openssl libopenssl-devel libffi-devel patch ncurses ncurses-devel xz python-setuptools awk automake libtool
+sudo zypper install -y git tar bzip2 unzip make autoconf net-tools wget wget-openssl1 curl-openssl1 libxslt-devel gcc openssl libopenssl-devel libffi-devel patch ncurses ncurses-devel xz python-setuptools awk automake libtool
+
+
+#Build openssl
+cd $homedir
+sudo rm -rf openssl
+git clone git://github.com/openssl/openssl.git
+cd openssl
+git checkout OpenSSL_1_0_2l	 
+./config --prefix=/usr --openssldir=/usr/local/openssl shared
+make
+sudo make install
+openssl version
+
+
+#Build curl
+cd $homedir
+sudo rm -rf curl
+git clone git://github.com/curl/curl.git
+cd curl
+git checkout curl-7_52_1
+./buildconf 
+./configure --prefix=/usr/local --with-ssl --disable-shared
+make &amp;&amp; sudo make install
+
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
+export PATH=/usr/local/bin:$PATH
+
+#Generate ca-bundle.crt for curl
+
+echo insecure &gt;&gt; $HOME/.curlrc
+wget --no-check-certificate https://raw.githubusercontent.com/curl/curl/curl-7_53_0/lib/mk-ca-bundle.pl
+perl mk-ca-bundle.pl -k
+
+export SSL_CERT_FILE=`pwd`/ca-bundle.crt
+rm  $HOME/.curlrc
+
+export LDFLAGS=&quot;-L/usr/local/lib/&quot;
+export LD_LIBRARY_PATH=&quot;/usr/local/lib/&quot;
+export CPPFLAGS=&quot;-I/usr/local/include -I/usr/local/include/openssl&quot;
 
 # Python 2.7.14
 cd $Ansible_home
 sudo zypper install -y gcc gcc-c++ make ncurses patch wget tar bzip2 zlib-devel xz readline-devel sqlite-devel tk-devel ncurses-devel gdbm-devel openssl-devel libdb-4_5-devel gdb awk glibc-debuginfo netcfg libbz2-devel
-wget https://www.python.org/ftp/python/2.7.14/Python-2.7.14.tar.xz
+wget --no-check-certificate https://www.python.org/ftp/python/2.7.14/Python-2.7.14.tar.xz
 tar -xvf Python-2.7.14.tar.xz
 cd Python-2.7.14
 ./configure --prefix=/usr/local --exec-prefix=/usr/local
@@ -69,17 +109,9 @@ sudo make install
 export PATH=/usr/local/bin:$PATH
 sudo /usr/sbin/update-alternatives --install /usr/bin/python python /usr/local/bin/python 10
 sudo /usr/sbin/update-alternatives --display python
+
 python -V
-
-
-# Install Openssl
-cd $Ansible_home
-git clone git://github.com/openssl/openssl.git
-cd openssl
-git checkout OpenSSL_1_0_2l	 
-./config --prefix=/usr --openssldir=/usr/local/openssl shared
-make
-sudo make install
+python -c &quot;import ssl; print(ssl.OPENSSL_VERSION)&quot;
 
 # Install pip
 sudo python -m ensurepip 
@@ -99,10 +131,13 @@ source ./hacking/env-setup -q
 
 #Install Python Modules
 cd $Ansible_home
-wget https://pypi.python.org/packages/f7/83/377e3dd2e95f9020dbd0dfd3c47aaa7deebe3c68d3857a4e51917146ae8b/pyasn1-0.1.9.tar.gz#md5=f00a02a631d4016818659d1cc38d229a
+wget --no-check-certificate https://pypi.python.org/packages/f7/83/377e3dd2e95f9020dbd0dfd3c47aaa7deebe3c68d3857a4e51917146ae8b/pyasn1-0.1.9.tar.gz#md5=f00a02a631d4016818659d1cc38d229a
 tar zxf pyasn1-0.1.9.tar.gz
+
+
 cd pyasn1-0.1.9/
 sudo python setup.py install
+sudo pip install -U cffi&gt;=1.7
 sudo python -m pip install paramiko PyYAML jinja2 httplib2 passlib nose mock mercurial six patch django==1.11.7 call coverage coveralls funcsigs cryptography==2.0.3 boto3 botocore boto redis readline  pytest-xdist pytest-mock python-memcached pycrypto s3 placebo netaddr pyVmomi f5-sdk
 
 

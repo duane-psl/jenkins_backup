@@ -67,7 +67,7 @@ export LANG=&quot;en_US.UTF-8&quot;
 export JAVA_TOOL_OPTIONS=&quot;-Dfile.encoding=UTF8&quot;
 export ANT_HOME=/usr/share/ant/
 export PATH=&quot;$ANT_HOME/bin:$PATH&quot;
-#export _JAVA_OPTIONS=&quot;-Xmx10g&quot;
+export _JAVA_OPTIONS=&quot;-Xmx10g&quot;
 
 # Download Elasticsearch source code
 cd $WORK_DIR
