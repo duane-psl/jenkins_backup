@@ -85,7 +85,19 @@ cd ./Lib/test
 #Install
 cd ../../
 sudo make install
-python -V
+
+python_version=$(python --version 2&gt;&amp;1)
+
+echo $python_version &gt; output.txt
+
+echo &apos;Python 2.7.14&apos; &gt; expected.txt
+result=`diff output.txt expected.txt`
+
+if [ -z &quot;$result&quot; ] ; then
+  exit 0
+else
+  exit 1
+fi
 </command>
     </hudson.tasks.Shell>
   </builders>

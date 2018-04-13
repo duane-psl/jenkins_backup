@@ -9,7 +9,7 @@
     </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>dc2_ub16.04_4096</assignedNode>
+  <assignedNode>dockercloud_ubuntu16.04-8192MB || dc2_ub16.04_4096</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>

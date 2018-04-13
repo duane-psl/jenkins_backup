@@ -26,7 +26,30 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>rm -rf ./*
+      <command>#Set the below parameters manually
+package_name=&quot;python&quot;
+published_version=&quot;2.7.14&quot;
+
+#Check distro and available version in repo : rhel7.x, Sles11.x/12.x, Ub16.x/17.x 
+. /etc/os-release
+if [ $ID == &quot;rhel&quot; ]; then
+	available_version=$(sudo yum info $package_name | grep Version | head -1 | cut -d &apos;:&apos; -f 2| cut -d &apos; &apos; -f 2)
+elif [ $ID == &quot;sles&quot; ]; then
+	available_version=$(sudo zypper info $package_name | grep Version | head -1 | cut -d &apos;:&apos; -f 2| cut -d &apos; &apos; -f 2)
+elif [ $ID == &quot;ubuntu&quot; ]; then
+	available_version=$(sudo apt-get update &amp;&amp; sudo apt-cache policy $package_name | grep Candidate | head -1 | cut -d &apos; &apos; -f 4)
+fi
+
+
+if [[ $available_version == *&quot;$published_version&quot;* ]]; then
+	echo &quot;Version $published_version is already available in repo&quot;
+    echo &quot;Exact name: $available_version ... Failing&quot;
+    exit 1
+else	
+   echo &quot;Published version is not available in repo. Going ahead.&quot;     
+fi
+
+rm -rf ./*
 #Install dependencies
 sudo zypper install -y gcc gcc-c++ make ncurses patch wget tar bzip2 zlib-devel xz readline-devel sqlite-devel tk-devel ncurses-devel gdbm-devel openssl-devel libdb-4_8-devel gdb awk netcfg libbz2-devel glibc-locale
 
@@ -68,7 +91,19 @@ cd ./Lib/test
 #Install
 cd ../../
 sudo make install
-python -V
+
+python_version=$(python --version 2&gt;&amp;1)
+
+echo $python_version &gt; output.txt
+
+echo &apos;Python 2.7.14&apos; &gt; expected.txt
+result=`diff output.txt expected.txt`
+
+if [ -z &quot;$result&quot; ] ; then
+  exit 0
+else
+  exit 1
+fi
 </command>
     </hudson.tasks.Shell>
   </builders>

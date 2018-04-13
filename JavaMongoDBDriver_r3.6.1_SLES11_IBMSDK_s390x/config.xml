@@ -4,6 +4,14 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>10</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
     <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
       <weight>1</weight>
     </hudson.plugins.heavy__job.HeavyJobProperty>
@@ -28,7 +36,7 @@ sudo zypper install -y git wget tar awk
 
 #Dependencis for mongodb server
 sudo zypper install -y net-snmp cyrus-sasl-plain cyrus-sasl-gssapi libcryptsetup-devel
-sudo zypper install -y bison flex libopenssl-devel libffi-devel readline-devel zlib-devel gdbm-devel ncurses-devel tcl-devel tk-devel sqlite3-devel gcc make awk wget tar bzip2 subversion
+sudo zypper install -y bison flex libopenssl-devel libffi-devel readline-devel zlib-devel gdbm-devel ncurses-devel tcl-devel tk-devel sqlite3-devel gcc make awk wget-openssl1 tar bzip2 subversion
 
 #Set environmental Variables
 export JAVA_HOME=/opt/ibm/java-s390x-80/
@@ -38,7 +46,7 @@ java -version
 
 # Get the Java MongoDB source code
 sudo rm -rf mongo-java-driver
-git clone https://github.com/mongodb/mongo-java-driver.git
+git clone git://github.com/mongodb/mongo-java-driver.git
 cd mongo-java-driver
 git checkout r3.6.1
 

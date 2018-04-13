@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description></description>
+  <description>Build Snappy-Java on Ubuntu 18.04</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
@@ -9,26 +9,18 @@
     </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>preeti_sles_12SP2 || dc2_sl12-SP2_4096 || dockercloud_sles12-sp2-8192</assignedNode>
+  <assignedNode>dockercloud_ubuntu18.04</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers>
-    <hudson.triggers.TimerTrigger>
-      <spec>H 13 * * 4</spec>
-    </hudson.triggers.TimerTrigger>
-    <hudson.triggers.SCMTrigger>
-      <spec>H 13 * * 4</spec>
-      <ignorePostCommitHooks>false</ignorePostCommitHooks>
-    </hudson.triggers.SCMTrigger>
-  </triggers>
+  <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>#Set the below parameters manually
-package_name=&quot;helm&quot;
-published_version=&quot;2.8.1&quot;
+package_name=&quot;snappy-java&quot;
+published_version=&quot;1.1.7&quot;
 
 #Check distro and available version in repo : rhel7.x, Sles11.x/12.x, Ub16.x/17.x 
 . /etc/os-release
@@ -48,67 +40,66 @@ if [[ $available_version == *&quot;$published_version&quot;* ]]; then
 else	
    echo &quot;Published version is not available in repo. Going ahead.&quot;     
 fi
-export WORK_DIR=`pwd`
-
-#Install Go
-sudo zypper update -y
-sudo zypper install -y tar wget gcc
-cat /etc/os*
-cd $WORK_DIR
-wget https://storage.googleapis.com/golang/go1.9.2.linux-s390x.tar.gz
-chmod ugo+r go1.9.2.linux-s390x.tar.gz
-sudo tar -C /usr/local -xzf go1.9.2.linux-s390x.tar.gz
-export PATH=$PATH:/usr/local/go/bin
-cd /usr/bin
-sudo ln gcc s390x-linux-gnu-gcc
-go version
-
-#
-sudo zypper install -y git make mercurial wget   
-
-export GOPATH=$WORK_DIR
-export PATH=$GOPATH/bin:$PATH
- 
-#Install glide
-
-cd $GOPATH
-wget https://github.com/Masterminds/glide/releases/download/v0.13.0/glide-v0.13.0-linux-s390x.tar.gz
-tar -xzf glide-v0.13.0-linux-s390x.tar.gz
-export PATH=$GOPATH/linux-s390x:$PATH
-glide --version
-
-#Download Helm source code
-mkdir -p $GOPATH/src/k8s.io
-cd $GOPATH/src/k8s.io
-git clone https://github.com/kubernetes/helm.git
-cd helm
-git checkout v2.8.1
- 
-#Build Helm
-cd $GOPATH/src/k8s.io/helm
-make bootstrap build
-export PATH=$GOPATH/src/k8s.io/helm/bin:$PATH
-  
-sed -i &quot;s/ -race//g&quot; $GOPATH/src/k8s.io/helm/Makefile
-
-git diff
-
-#Run test cases
-cd $GOPATH/src/k8s.io/helm/
-make test 2&gt;&amp;1 | tee -a test_logs
 
 
-cd $GOPATH/src/k8s.io/helm
-bin/tiller &amp;
-sleep 20s
-export HELM_HOST=localhost:44134
-helm version
- 
-sleep 20s
-pgrep -d&quot; &quot; -f &quot;tiller&quot; | sudo xargs kill || true 
-sleep 20s 
- 
- </command>
+#Install dependencies
+sudo apt-get update
+sudo apt-get install -y openjdk-8-jdk automake autoconf libtool pkg-config git wget tar make patch cmake curl
+            
+
+#Get the source code
+git clone https://github.com/xerial/snappy-java.git
+cd snappy-java
+git checkout 1.1.7
+
+# Set variables                
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-s390x
+export PATH=$JAVA_HOME/bin:$PATH
+java -version
+
+# Build
+make IBM_JDK_7=1 USE_GIT=1 GIT_SNAPPY_BRANCH=1.1.7 GIT_REPO_URL=https://github.com/google/snappy.git 
+
+ldd target/snappy-1.1.7-Linux-s390x/libsnappyjava.so
+
+cd target
+echo &apos;
+import org.xerial.snappy.*;
+public class Test {
+      public static void main(String[] args) {
+           try {
+                String input = &quot;Hello snappy-java! Snappy-java is a JNI-based wrapper of &quot; + 
+						&quot;Snappy, a fast compresser/decompresser.&quot;;
+				byte[] compressed = Snappy.compress(input.getBytes(&quot;UTF-8&quot;));
+				byte[] uncompressed = Snappy.uncompress(compressed);
+
+				String result = new String(uncompressed, &quot;UTF-8&quot;);
+				System.out.println(result);
+                } catch(Exception e){
+                         System.out.println(e);
+                }
+      }
+}
+&apos; &gt; Test.java
+
+# Compile java example
+javac -cp &quot;.:snappy-java-1.1.7.jar&quot; Test.java
+
+# Run example: 
+java -cp &quot;.:snappy-java-1.1.7.jar&quot; Test &gt; test_result.txt
+
+#Following ouput should be observed:
+# ```Hello snappy-java! Snappy-java is a JNI-based wrapper of Snappy, a fast compresser/decompresser.```
+
+echo &apos;Hello snappy-java! Snappy-java is a JNI-based wrapper of Snappy, a fast compresser/decompresser.&apos; &gt; expected_result.txt
+
+result=`diff test_result.txt expected_result.txt`
+
+if [ -z &quot;$result&quot; ] ; then
+  exit 0
+else
+  exit 1
+fi</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -118,9 +109,9 @@ sleep 20s
 
 def x=manager.envVars[&apos;NODE_NAME&apos;]
 Jenkins.instance.slaves.each {
-if(it.name==x){
+    if(it.name==x){
 it.getComputer().doDoDelete()
-}
+    }
 }</script>
         <sandbox>false</sandbox>
       </script>
@@ -133,7 +124,7 @@ it.getComputer().doDoDelete()
       <authToken></authToken>
       <authTokenCredentialId></authTokenCredentialId>
       <botUser>false</botUser>
-      <room>#loz-jenkins-build,@preeti.khorjuvenkar,@ketank</room>
+      <room>#loz-jenkins-build,@duaned</room>
       <startNotification>false</startNotification>
       <notifySuccess>false</notifySuccess>
       <notifyAborted>false</notifyAborted>
