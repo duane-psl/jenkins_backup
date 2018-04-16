@@ -9,7 +9,7 @@
     </hudson.plugins.heavy__job.HeavyJobProperty>
   </properties>
   <scm class="hudson.scm.NullSCM"/>
-  <assignedNode>dc2_sl12-sp3_4096</assignedNode>
+  <assignedNode>dc2_sl12-sp3_4096 || dockercloud_sles12-sp3_8192</assignedNode>
   <canRoam>false</canRoam>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
@@ -26,30 +26,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>#Set the below parameters manually
-package_name=&quot;geode&quot;
-published_version=&quot;1.2.0&quot;
-
-#Check distro and available version in repo : rhel7.x, Sles11.x/12.x, Ub16.x/17.x 
-. /etc/os-release
-if [ $ID == &quot;rhel&quot; ]; then
-	available_version=$(sudo yum info $package_name | grep Version | head -1 | cut -d &apos;:&apos; -f 2| cut -d &apos; &apos; -f 2)
-elif [ $ID == &quot;sles&quot; ]; then
-	available_version=$(sudo zypper info $package_name | grep Version | head -1 | cut -d &apos;:&apos; -f 2| cut -d &apos; &apos; -f 2)
-elif [ $ID == &quot;ubuntu&quot; ]; then
-	available_version=$(sudo apt-get update &amp;&amp; sudo apt-cache policy $package_name | grep Candidate | head -1 | cut -d &apos; &apos; -f 4)
-fi
-
-
-if [[ $available_version == *&quot;$published_version&quot;* ]]; then
-	echo &quot;Version $published_version is already available in repo&quot;
-    echo &quot;Exact name: $available_version ... Failing&quot;
-    exit 1
-else	
-   echo &quot;Published version is not available in repo. Going ahead.&quot;     
-fi
-
-export WS=`pwd`
+      <command>export WS=`pwd`
 
 #Install dependencies
 sudo zypper update -y 
@@ -149,7 +126,7 @@ index a0116a60..5317590e 100644
 
         ###Build and test
         cd $WS/protobuf/
-        make &amp;&amp; make check
+        make 
         
         ###Install Protobuf and verify the installation
         sudo make install
@@ -174,14 +151,15 @@ rm -rf incubator-geode
 rm -rf /home/test/.gradle
 git clone https://github.com/apache/incubator-geode.git
 cd incubator-geode/
-git checkout rel/v1.3.0
+git checkout rel/v1.4.0
 
 
 mkdir -p /home/test/.gradle/caches/modules-2/files-2.1/com.google.protobuf/protoc/3.0.0
 cp /usr/local/bin/protoc /home/test/.gradle/caches/modules-2/files-2.1/com.google.protobuf/protoc/3.0.0/protoc-3.0.0-linux-s390x_64.exe
 
-sudo -E sed -i &apos;45d&apos; $WS/incubator-geode/geode-protobuf/build.gradle 
+sudo -E sed -i &apos;37d&apos; $WS/incubator-geode/geode-protobuf-messages/build.gradle 
 sudo -E sed -i &quot;44iorg.gradle.jvmargs = -Xss1g&quot; $WS/incubator-geode/gradle.properties
+
 cd $WS/incubator-geode
 git diff 
 

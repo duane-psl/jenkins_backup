@@ -53,7 +53,7 @@ fi
 export hbase_dir=`pwd`
 
 sudo apt-get update
-sudo apt-get install -y git wget tar make gcc maven
+sudo apt-get install -y git wget tar make gcc maven ant
 
 #install IBM java
 wget http://public.dhe.ibm.com/ibmdl/export/pub/systems/cloud/runtimes/java/8.0.4.10/linux/s390x/ibm-java-sdk-8.0-4.10-s390x-archive.bin

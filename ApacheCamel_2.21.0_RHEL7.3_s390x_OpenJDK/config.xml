@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
+      <weight>1</weight>
+    </hudson.plugins.heavy__job.HeavyJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>dc2_rh7.3_2048</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>source /home/test/.bashrc
+export WORK_DIR=`pwd`
+
+#Install the Dependencies
+sudo yum install -y java-1.8.0-openjdk-devel.s390x tar wget 
+
+
+
+#Set JAVA_HOME
+export JAVA_HOME=/usr/lib/jvm/java
+
+#Set environment variables
+
+export PATH=$JAVA_HOME/bin:$PATH
+java -version
+#Install Maven 3.3.9
+cd $WORK_DIR
+wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.3.9/apache-maven-3.3.9-bin.tar.gz
+tar -xvzf apache-maven-3.3.9-bin.tar.gz
+export M2_HOME=$WORK_DIR/apache-maven-3.3.9
+export PATH=$M2_HOME/bin:$PATH
+export MAVEN_OPTS=&quot;-Xms1024m&quot;
+#Build and install Apache Camel 2.21.0
+cd $WORK_DIR
+wget https://github.com/apache/camel/archive/camel-2.21.0.tar.gz
+tar -xvzf camel-2.21.0.tar.gz
+mv camel-camel-2.21.0 camel
+cd camel/apache-camel
+mvn clean install -fn -B
+
+
+exit_status=$?
+if [ $exit_status -eq 0 ]; then
+        echo &quot;Job Passed&quot;
+        exit 0
+else
+        echo &quot;Job Failed&quot;
+        exit 1
+fi
+
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

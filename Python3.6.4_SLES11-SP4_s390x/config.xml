@@ -51,7 +51,7 @@ else
 fi
 #-----------------------------------------------------------------------------------------
 sudo zypper up -y
-sudo zypper install -y gcc gcc-c++ make ncurses patch wget tar zlib-devel xz awk netcfg
+sudo zypper install -y gcc gcc-c++ make ncurses patch wget tar zlib-devel xz awk netcfg openssl
 
 export PATH=$PATH:/usr/local/bin
 
