@@ -101,6 +101,57 @@ nohup /usr/share/elasticsearch/bin/elasticsearch &amp;
 sleep 30s
 curl http://localhost:9200/
 
+
+sudo apt-get install -y python-pip 
+sudo pip install elasticsearch-curator
+curator --version
+
+sudo bash -c &quot;cat &gt; config.yml&quot; &lt;&lt;&apos;EOF&apos; 
+---
+client:
+  hosts:
+    - 127.0.0.1
+  port: 9200
+  url_prefix:
+  use_ssl: False
+  certificate:
+  client_cert:
+  client_key:
+  ssl_no_validate: False
+  http_auth:
+  timeout: 30
+  master_only: False
+
+logging:
+  loglevel: INFO
+  logfile:
+  logformat: default
+  blacklist: [&apos;elasticsearch&apos;, &apos;urllib3&apos;] 
+  
+EOF
+
+sudo bash -c &quot;cat &gt; action_create.yml&quot; &lt;&lt;&apos;EOF&apos; 
+---
+actions:
+  create_web-app1-metrics:
+    action: create_index
+    description: &gt;-
+      Create Elasticsearch Index based on Todays Date
+      Specify Number of Primary and Replica Shards
+      web-app1-metrics-2017.12.04
+    options:
+      name: &apos;&lt;web-app1-metrics-{now/d}&gt;&apos;
+      extra_settings:
+        settings:
+          number_of_shards: 5
+          number_of_replicas: 1
+        continue_if_exception: True
+        disable_action: False
+  
+EOF
+curator --config config.yml action_create.yml
+curl -XGET localhost:9200/_cat/indices/web-*?v
+
 ps -aef 
 
 pgrep -d&quot; &quot; -f &quot;elasticsearch&quot; | xargs kill;

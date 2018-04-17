@@ -80,7 +80,7 @@ make test
 # Install Prometheus
 #sudo yum install -y make cmake gcc wget tar git  - already installed
 # Prometheus
-rm -rf $GOPATH/src/github.com/prometheus
+#rm -rf $GOPATH/src/github.com/prometheus
 mkdir -p $GOPATH/src/github.com/prometheus
 cd $GOPATH/src/github.com/prometheus
 git config --global url.&quot;git://github.com/&quot;.insteadOf &quot;https://github.com/&quot;
@@ -161,14 +161,9 @@ cat index.html
 
 cd ..
 
-wget ttp://127.0.0.1:9103/metrics 
-cat index.html
+wget http://127.0.0.1:9103/metrics 
+cat metrics
 
-
-pgrep -d&quot; &quot; -f &quot;prometheus&quot; | sudo xargs kill;
-
-sleep 20
-./prometheus --version
 </command>
     </hudson.tasks.Shell>
   </builders>
@@ -194,7 +189,7 @@ it.getComputer().doDoDelete()
       <authToken></authToken>
       <authTokenCredentialId></authTokenCredentialId>
       <botUser>false</botUser>
-      <room>#loz-jenkins-build, @agautam</room>
+      <room>#loz-jenkins-build, @nbhave</room>
       <startNotification>false</startNotification>
       <notifySuccess>false</notifySuccess>
       <notifyAborted>false</notifyAborted>

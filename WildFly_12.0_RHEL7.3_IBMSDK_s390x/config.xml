@@ -54,7 +54,7 @@ cp pom.xml pom.xml.org
 #sed -i &apos;2263i \\t\t\t\ \&lt;artifactId&gt;xalan&lt;/artifactId&gt;&apos; pom.xml
 #sed -i &apos;2263i \\t\t\t\ \&lt;groupId&gt;xalan&lt;/groupId&gt;&apos; pom.xml
 #sed -i &apos;2263i \\t\t\    \&lt;exclusion&gt;&apos; pom.xml
-mvn install
+mvn install -DskipTests 
 
 #Verification
 # Start server in stand alone mode

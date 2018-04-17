@@ -1,0 +1,203 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.heavy__job.HeavyJobProperty plugin="heavy-job@1.1">
+      <weight>1</weight>
+    </hudson.plugins.heavy__job.HeavyJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>dc2_ub18.04_2048</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H 6 * * 2</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>source /home/test/.bashrc
+#Set the below parameters manually
+package_name=&quot;collectd-exporter&quot;
+published_version=&quot;0.4.0&quot;
+
+#Check distro and available version in repo : rhel7.x, Sles11.x/12.x, Ub16.x/17.x 
+. /etc/os-release
+if [ $ID == &quot;rhel&quot; ]; then
+	available_version=$(sudo yum info $package_name | grep Version | head -1 | cut -d &apos;:&apos; -f 2| cut -d &apos; &apos; -f 2)
+elif [ $ID == &quot;sles&quot; ]; then
+	available_version=$(sudo zypper info $package_name | grep Version | head -1 | cut -d &apos;:&apos; -f 2| cut -d &apos; &apos; -f 2)
+elif [ $ID == &quot;ubuntu&quot; ]; then
+	sudo apt-get update
+	available_version=$(sudo apt-cache policy $package_name | grep Candidate | head -1 | cut -d &apos; &apos; -f 4)
+fi
+
+
+if [[ $available_version == *&quot;$published_version&quot;* ]]; then
+	echo &quot;Version $published_version is already available in repo&quot;
+    echo &quot;Exact name: $available_version ... Failing&quot;
+    exit 1
+else	
+   echo &quot;Available version: $available_version&quot;
+   echo &quot;Published version is not available in repo. Going ahead.&quot;     
+fi
+#-------------------------------------------------------------------------------------------------------------------------
+
+sudo apt-get update -y
+export BUILDDIR=`pwd`
+
+# Install dependencies
+sudo apt-get install -y make cmake gcc g++ wget tar git  
+
+# Install go
+sudo apt-get install -y golang-1.9
+
+
+# Set environment variables
+export GOPATH=$BUILDDIR
+export PATH=$PATH:$GOPATH/bin:/usr/lib/go-1.9/bin    
+
+go version
+
+mkdir -p $GOPATH/src/github.com/prometheus
+cd $GOPATH/src/github.com/prometheus
+git config --global url.&quot;git://github.com/&quot;.insteadOf &quot;https://github.com/&quot;
+git clone https://github.com/prometheus/collectd_exporter  
+cd collectd_exporter  
+git checkout v0.4.0
+make build   
+make test  
+
+
+# Install Prometheus
+#sudo apt-get install -y make cmake gcc g++ wget tar git curl   - already installed
+# Prometheus
+#rm -rf $GOPATH/src/github.com/prometheus
+mkdir -p $GOPATH/src/github.com/prometheus
+cd $GOPATH/src/github.com/prometheus
+git config --global url.&quot;git://github.com/&quot;.insteadOf &quot;https://github.com/&quot;
+git clone https://github.com/prometheus/prometheus.git
+cd prometheus
+git checkout v2.1.0
+make build
+
+sudo bash -c &quot;cat &gt; prometheus.yml&quot; &lt;&lt;&apos;EOF&apos; 
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: &apos;codelab-monitor&apos;
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it&apos;s Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=&lt;job_name&gt;` to any timeseries scraped from this config.
+  - job_name: &apos;prometheus&apos;
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+
+    static_configs:
+      - targets: [&apos;localhost:9090&apos;]
+      
+scrape_configs:  
+  - job_name: &apos;collectd&apos;  
+    scrape_interval: 15s  
+    static_configs:  
+      - targets: [&apos;localhost:9103&apos;]         
+EOF
+
+
+# Install collectd
+sudo apt-get install -y collectd 
+
+#below commands to change config file. ** MIGHT CHANGE IN NEW VERSION OF COLLECTD **
+echo &apos;LoadPlugin network
+&lt;Plugin network&gt;
+  Server &quot;localhost&quot; &quot;25826&quot;
+&lt;/Plugin&gt;
+
+LoadPlugin write_http
+&lt;Plugin write_http&gt;
+  &lt;Node &quot;collectd_exporter&quot;&gt;
+    URL &quot;http://localhost:9103/collectd-post&quot;
+    Format &quot;JSON&quot;
+    StoreRates false
+  &lt;/Node&gt;
+&lt;/Plugin&gt;&apos; | sudo tee -a /etc/collectd/collectd.conf
+
+
+sudo cat /etc/collectd/collectd.conf
+
+#Start collectd 
+sudo service collectd start
+
+#Start collectd_exporter
+cd $GOPATH/src/github.com/prometheus/collectd_exporter  
+./collectd_exporter --collectd.listen-address=&quot;:25826&quot; &amp;
+
+#Start Prometheus
+cd $GOPATH/src/github.com/prometheus/prometheus
+./prometheus --config.file=prometheus.yml &amp;
+sleep 20
+wget  http://127.0.0.1:9090 
+
+cat index.html
+
+cd ..
+
+wget http://127.0.0.1:9103/metrics 
+cat metrics
+
+cat metrics | grep collectd</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder plugin="groovy-postbuild@2.3.1">
+      <script plugin="script-security@1.24">
+        <script>import jenkins.model.Jenkins
+
+def x=manager.envVars[&apos;NODE_NAME&apos;]
+Jenkins.instance.slaves.each {
+    if(it.name==x){
+it.getComputer().doDoDelete()
+    }
+}</script>
+        <sandbox>false</sandbox>
+      </script>
+      <behavior>0</behavior>
+      <runForMatrixParent>false</runForMatrixParent>
+    </org.jvnet.hudson.plugins.groovypostbuild.GroovyPostbuildRecorder>
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.2">
+      <baseUrl></baseUrl>
+      <teamDomain></teamDomain>
+      <authToken></authToken>
+      <authTokenCredentialId></authTokenCredentialId>
+      <botUser>false</botUser>
+      <room>#loz-jenkins-build, @nbhave</room>
+      <startNotification>false</startNotification>
+      <notifySuccess>false</notifySuccess>
+      <notifyAborted>false</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyRegression>false</notifyRegression>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>true</notifyBackToNormal>
+      <notifyRepeatedFailure>true</notifyRepeatedFailure>
+      <includeTestSummary>false</includeTestSummary>
+      <includeFailedTests>false</includeFailedTests>
+      <commitInfoChoice>NONE</commitInfoChoice>
+      <includeCustomMessage>false</includeCustomMessage>
+      <customMessage></customMessage>
+    </jenkins.plugins.slack.SlackNotifier>
+  </publishers>
+  <buildWrappers/>
+</project>
