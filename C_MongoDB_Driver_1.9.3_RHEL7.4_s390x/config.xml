@@ -26,11 +26,11 @@
 sudo yum install -y autoconf automake gcc-c++ libtool make which wget tar
 
 # Start mongodb server 
-wget https://repo.mongodb.com/yum/redhat/6/mongodb-enterprise/3.5/s390x/RPMS/mongodb-enterprise-unstable-server-3.5.10-1.el6.s390x.rpm
-sudo yum --nogpgcheck localinstall -y mongodb-enterprise-unstable-server-3.5.10-1.el6.s390x.rpm
-sudo mkdir -p db
-sudo /usr/bin/mongod --dbpath db &amp;
-sleep 40s
+#wget https://repo.mongodb.com/yum/redhat/6/mongodb-enterprise/3.5/s390x/RPMS/mongodb-enterprise-unstable-server-3.5.10-1.el6.s390x.rpm
+#sudo yum --nogpgcheck localinstall -y mongodb-enterprise-unstable-server-3.5.10-1.el6.s390x.rpm
+#sudo mkdir -p db
+#sudo /usr/bin/mongod --dbpath db &amp;
+#sleep 40s
 
 wget -O mongo-c-driver-1.9.3.tar.gz  https://github.com/mongodb/mongo-c-driver/releases/download/1.9.3/mongo-c-driver-1.9.3.tar.gz
 tar xzf mongo-c-driver-1.9.3.tar.gz
@@ -53,7 +53,7 @@ echo &quot;#include &lt;bson.h&gt;
 #include &lt;mongoc.h&gt;
 #include &lt;stdio.h&gt;
 
-const char* server=\&quot;localhost\&quot;;
+const char* server=\&quot;9.12.19.83\&quot;;
 const char* test_db=\&quot;ibm_test_db\&quot;;
 const char* collection_name=\&quot;mongodb_c_driver\&quot;;
 

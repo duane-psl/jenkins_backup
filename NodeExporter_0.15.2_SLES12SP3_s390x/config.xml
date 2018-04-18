@@ -125,7 +125,7 @@ cd $GOPATH/src/github.com/prometheus/node_exporter
 #Start Prometheus
 cd $GOPATH/src/github.com/prometheus/prometheus
 ./prometheus --config.file=prometheus.yml &amp;
-sleep 20
+sleep 60
 wget  http://127.0.0.1:9090 
 
 cat index.html

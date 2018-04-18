@@ -91,7 +91,7 @@ gradle
 sudo cp $WS/rt/build/sdk/rt/lib/ext/jfxrt.jar  /usr/lib64/jvm/java-1.8.0-openjdk/jre/lib/ext/
 
 #Get Jmeter source and build
-git clone git://git.apache.org/jmeter.git
+git clone https://github.com/apache/jmeter.git
 cd jmeter/
 git checkout v4_0
 ant download_jars
