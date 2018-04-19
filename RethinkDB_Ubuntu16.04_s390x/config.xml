@@ -63,7 +63,7 @@ sed -i &apos;158 s/^/    /&apos; mk/support/pkg/v8.sh
 
 
 ./configure --allow-fetch
-make
+make -j 4
 
 #Install RethinkDB
 sudo make install

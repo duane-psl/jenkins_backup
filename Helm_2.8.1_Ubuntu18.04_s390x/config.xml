@@ -83,8 +83,8 @@ git diff
 
 #Run test cases
 cd $GOPATH/src/k8s.io/helm/
-make test 2&gt;&amp;1 | tee -a test_logs
-
+#make test 2&gt;&amp;1 | tee -a test_logs
+make test
 
 cd $GOPATH/src/k8s.io/helm
 bin/tiller &amp;

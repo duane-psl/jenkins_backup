@@ -30,27 +30,73 @@
 sudo zypper up -y
 
 # Install Python MongoDB Driver and its dependencies
-sudo zypper install -y git curl python-xml python-openssl  python-setuptools openssl-devel openssl tar python-devel gcc
+sudo zypper install -y git curl python-xml python-openssl make awk python-setuptools openssl-devel openssl tar xz python-devel gcc wget-openssl1 curl-openssl1 automake libtool autoconf 
 
-#Install pip
-curl -O https://pypi.python.org/packages/source/p/pip/pip-1.2.1.tar.gz
-tar xvfz pip-1.2.1.tar.gz
-cd pip-1.2.1
-sudo python setup.py install
-sudo ln -sfn /usr/local/bin/pip /usr/bin/pip	
+#Build openssl
+cd $homedir
+sudo rm -rf openssl
+git clone git://github.com/openssl/openssl.git
+cd openssl
+git checkout OpenSSL_1_0_2l	 
+./config --prefix=/usr --openssldir=/usr/local/openssl shared
+make
+sudo make install
+openssl version
 
-python -V 
-pip --version
 
+#Build curl
+cd $homedir
+sudo rm -rf curl
+git clone git://github.com/curl/curl.git
+cd curl
+git checkout curl-7_52_1
+./buildconf 
+./configure --prefix=/usr/local --with-ssl --disable-shared
+make &amp;&amp; sudo make install
+
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
+export PATH=/usr/local/bin:$PATH
+
+#Generate ca-bundle.crt for curl
+
+echo insecure &gt;&gt; $HOME/.curlrc
+wget --no-check-certificate https://raw.githubusercontent.com/curl/curl/curl-7_53_0/lib/mk-ca-bundle.pl
+perl mk-ca-bundle.pl -k
+
+export SSL_CERT_FILE=`pwd`/ca-bundle.crt
+rm  $HOME/.curlrc
+
+export LDFLAGS=&quot;-L/usr/local/lib/&quot;
+export LD_LIBRARY_PATH=&quot;/usr/local/lib/&quot;
+export CPPFLAGS=&quot;-I/usr/local/include -I/usr/local/include/openssl&quot;
+
+
+# Python 2.7.14
+cd $homedir
+sudo zypper install -y gcc gcc-c++ make ncurses patch wget tar bzip2 zlib-devel xz readline-devel sqlite-devel tk-devel ncurses-devel gdbm-devel openssl-devel libdb-4_5-devel gdb awk glibc-debuginfo netcfg libbz2-devel
+wget --no-check-certificate https://www.python.org/ftp/python/2.7.14/Python-2.7.14.tar.xz
+tar -xvf Python-2.7.14.tar.xz
+cd Python-2.7.14
+./configure --prefix=/usr/local --exec-prefix=/usr/local
+make
+sudo make install
+export PATH=/usr/local/bin:$PATH
+sudo /usr/sbin/update-alternatives --install /usr/bin/python python /usr/local/bin/python 10
+sudo /usr/sbin/update-alternatives --display python
+
+python -V
+python -c &quot;import ssl; print(ssl.OPENSSL_VERSION)&quot;
+sudo python -m ensurepip 
 
 # dependencies for mongoDB Server
 sudo zypper install -y net-snmp cyrus-sasl cyrus-sasl-plain cyrus-sasl-gssapi wget openssl timezone
 sudo zypper install -y libnetsnmpagent.so.15
 
 #Install and Start MongoDB server
-cd ..
+#cd ..
 wget https://repo.mongodb.com/zypper/suse/11/mongodb-enterprise/3.6/s390x/RPMS/mongodb-enterprise-server-3.6.2-1.suse11.s390x.rpm
-sudo rpm -Uvh --noscripts mongodb-enterprise-server-3.6.2-1.suse11.s390x.rpm
+sudo rpm -Uhv --noscripts mongodb-enterprise-server-3.6.2-1.suse11.s390x.rpm
 sudo mkdir -p db
 sudo /usr/bin/mongod --dbpath db &amp;
 sleep 40s
